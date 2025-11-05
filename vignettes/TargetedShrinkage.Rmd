@@ -1,0 +1,79 @@
+---
+title: "TargetedShrinkage"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{TargetedShrinkage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(TargetedShrinkage)
+```
+
+## Shrinkage methods
+
+This library contains several functions for different ways of estimating the mean value under shrinkage.
+The most important of these are the following.
+
+* `JamesSteinShrinkage` This is a standard method for mean shrinkage. It has some optimality properties under the
+assumptions of normality and independent random variables with equal variance. Our implementation shrinks towards the
+mean of the observed mean values and uses the standard adjustment for covariance.
+
+* `targetedShrinkage` This is a new method that shrinks uniformly to a targeted mean using the covariance matrix
+provided. It has an additional benefit of being translation invariant.
+
+* `whiteningShrinkage` This method uses PCA whitening to transform the original data to get an identity covariance matrix.
+It then carries out James–Stein shrinkage on the transformed means and then transforms them back. It is not translation
+invariant.
+
+All three methods have the following same first two parameters.
+
+1. `means` A vector of mean values.
+
+2. `covariances` A covariance matrix. It must have the same numbers of rows and columns as the length of `means`. 
+
+All three methods should give the same result when the covariance matrix is a multiple of the identity matrix.
+
+### Further shrinkage methods
+
+There are further shrinkage methods.
+
+* `JorionMeans` This method is standard. It includes a parameter `T` for the size of the data set used to estimate the means.
+
+* `nonuniformShrinkage` is an experimental method. Like `JorionMeans`, we need a parameter `T`.
+
+## Testing methods
+
+The package includes a function `quadraticLoss` that can be used to compare methods if we know the
+population means. We expect a smaller quadratic loss (on average) for a better estimator. The first parameter can
+be a matrix. Then it computes the average quadratic loss.
+
+Here is an example of how we might use the `quadraticLoss` function. Here we create samples from
+10 identically distributed normal random variables with variance 1 and means 1, … ,10. We can take each sample
+as an observation of means and so apply any of `JamesSteinShrinkage`, `targetedShrinkage` or `whiteningShrinkage`
+and should get the same risk, which we estimate with `quadraticLoss`.
+
+```
+# Create the population mean vector.
+populationMeans <- 1:10
+# Create the covariance matrix. Here it is an identity matrix.
+Sigma <- diag(rep(1,10))
+# Generate B of samples: a matrix with 10 columns and B rows.
+B <- 2000
+sampleMeans <- MASS::mvrnorm(n = B,mu = populationMeans,Sigma = Sigma)
+
+# Estimate the shrinkage means with method targetedShrinkage.
+shrinkageMeans <- t(apply(X = sampleMeans,MARGIN = 1,FUN = function(row) targetedShrinkage(row,Sigma)))
+sampleRisk <- mean(quadraticLoss(sampleMeans,populationMeans,Sigma))
+shrinkageRisk <- mean(quadraticLoss(shrinkageMeans,populationMeans,Sigma))
+```
+
+The `MASS::mvrnorm` method can be used to generate data with arbitrary covariance matrix and means.
