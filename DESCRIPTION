@@ -1,0 +1,19 @@
+Package: TargetedShrinkage
+Type: Package
+Title: Shrinkage estimator for the multivariate mean based on optimal shrinkage target
+Version: 1.0
+Date: 2023-04-03
+Author: John D. Lamb
+Maintainer: John D. Lamb <J.D.Lamb@abdn.ac.uk>
+Description: This package provides a shrinkage estimator for the multivariate mean. The estimator shrinks towards an optimal target, which is not generally equal to the mean of mean values.
+License: GPL (>= 2)
+Imports: Rcpp (>= 1.0.8), methods, LaplacesDemon
+LinkingTo: Rcpp
+RoxygenNote: 7.2.3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 2.1.0)
+VignetteBuilder: knitr
